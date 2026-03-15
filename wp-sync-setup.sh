@@ -81,7 +81,10 @@ st() {
 wait_for_api() {
   local tries=30
   for ((i=1; i<=tries; i++)); do
-    curl -sf "$ST_API/rest/system/ping" >/dev/null 2>&1 && return 0
+    # any HTTP response (even 401/403) means syncthing is up
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 "$ST_API/rest/system/ping" 2>/dev/null) || true
+    [[ "$code" =~ ^[0-9]+$ && "$code" -gt 0 ]] && return 0
     sleep 1
   done
   die "syncthing API not responding after ${tries}s"
@@ -89,7 +92,9 @@ wait_for_api() {
 
 wait_for_api_down() {
   for ((i=1; i<=20; i++)); do
-    curl -sf --connect-timeout 1 "$ST_API/rest/system/ping" >/dev/null 2>&1 || return 0
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 "$ST_API/rest/system/ping" 2>/dev/null) || true
+    [[ -z "$code" || "$code" == "000" ]] && return 0
     sleep 0.5
   done
   warn "syncthing didn't stop within 10s, continuing anyway"
