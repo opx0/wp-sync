@@ -23,6 +23,8 @@
 
 set -euo pipefail
 
+main() {
+
 # ── config ────────────────────────────────────────────────────────────────────
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 FOLDER_ID="${WP_FOLDER_ID:-wallpapers}"
@@ -350,3 +352,7 @@ else
   printf "  once accepted, wallpapers will sync automatically.\n"
 fi
 printf "\n"
+
+} # end main
+
+main "$@"
